@@ -1,0 +1,3 @@
+demo:0.0.1-SNAPSHOT
+
+docker container run --network network-mysql --name demo -p 8082:8082 -d demo:0.0.1-SNAPSHOT
