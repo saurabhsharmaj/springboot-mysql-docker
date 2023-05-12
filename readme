@@ -1,10 +1,32 @@
 demo:0.0.1-SNAPSHOT
 
+docker build -t kafka-monitor .
+
+docker network create network-mysql
+
+docker container run --name mysqldb --network network-mysql -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=user_management -d mysql:8
+
 docker container run --network network-mysql --name demo -p 8082:8082 -d demo:0.0.1-SNAPSHOT
 
-
+http://localhost:8082/
+http://localhost:8082/all
+http://localhost:8082/save
 
 -----------------------------------
 Kubernate
 -----------------------------------
+docker build -t kafka-monitor .
+
+kubectl apply -f deployment\secrets.yaml
+kubectl apply -f deployment\mysql-deployment.yaml
+kubectl apply -f deployment\service-deployment.yaml
+
+kubectl get pods
+
+kubectl logs -f <pod-id>
+
 https://www.kindsonthegenius.com/deploy-springboot-with-mysql-to-kubernetes-minikube-step-by-step-tutorial/
+
+http://localhost:31371/
+http://localhost:31371/all
+http://localhost:31371/save
