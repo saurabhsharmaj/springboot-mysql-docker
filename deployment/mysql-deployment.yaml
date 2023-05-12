@@ -1,0 +1,106 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: mysql
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - image: mysql:8
+          name: mysql
+          resources:
+            limits:
+              memory: 1Gi
+              cpu: "1"
+            requests:
+              memory: 500Mi
+              cpu: 500m
+          env:
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-config
+                  key: MYSQL_DATABASE
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_PASSWORD
+          ports:
+            - containerPort: 3306
+              name: mysql
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+            - name: initdb
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: mysql-pv-claim
+        - name: initdb
+          configMap:
+            name: mysql-config
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-config
+data:
+  MYSQL_DATABASE: user_management
+  MYSQL_DATABASE_URL: jdbc:mysql://mysql/user_management
+  initdb.sql: >
+    use user_management;
+
+    CREATE TABLE `users` (`id` int NOT NULL AUTO_INCREMENT,`username` varchar(45) DEFAULT NULL,`password` varchar(512) DEFAULT NULL,`enabled` tinyint DEFAULT '0',PRIMARY KEY (`id`));
+
+    INSERT INTO `user_management`.`users`(`id`,`username`,`password`,`enabled`)VALUES(1,'demo','demo',0);
+
+    CREATE TABLE `roles` (`user_id` int NOT NULL,  `user_role` varchar(255) DEFAULT NULL,  `roles_user_id` int NOT NULL,  UNIQUE KEY `UK_1j33vtxvwasx7otga4bre95y8` (`roles_user_id`),  KEY `fk_idx` (`user_id`),  CONSTRAINT `fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,  CONSTRAINT `FK5bjd7cki1dhnc0b53nrtpccuq` FOREIGN KEY (`roles_user_id`) REFERENCES `roles` (`user_id`));

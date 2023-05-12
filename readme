@@ -1,7 +1,10 @@
-Image name: demo:0.0.1-SNAPSHOT
+demo:0.0.1-SNAPSHOT
 
 docker container run --network network-mysql --name demo -p 8082:8082 -d demo:0.0.1-SNAPSHOT
 
 
-http://localhost:8082/save
-http://localhost:8082/all
+
+-----------------------------------
+Kubernate
+-----------------------------------
+https://www.kindsonthegenius.com/deploy-springboot-with-mysql-to-kubernetes-minikube-step-by-step-tutorial/
